@@ -2,7 +2,18 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 
+
+class Tournament():
+    def __init__(self, name, link):
+        self.name = name
+        self.link = None
+
+class Participant():
+    def __init__(self, id):
+        self.id = id
+
 def get_new_tournaments_list(source_url, tournamentsAfterDate):
+    """Grab only newer tournaments from LimitlessTCG, return a list of tournament objects"""
     base_url = source_url[:-1]
     pagenumber = 1
     requests_url = base_url + str(pagenumber)
@@ -11,18 +22,20 @@ def get_new_tournaments_list(source_url, tournamentsAfterDate):
     soup = BeautifulSoup(page.content, "html.parser")
 
     tournaments_list = soup.find(class_="striped completed-tournaments")
-    return(tournaments_list)
+    return tournaments_list
 
 def extract_tournament_information(tournaments):
+    """Get the high level information about a tournament, such as URL, player counts, winners"""
     rows = tournaments.find_all("tr")
     headers = {}
     head = tournaments.find_all("th")
     #print(head)
     if head:
-        for i in range(len(head)):
-            headers[i] = head[i]['data-sort'].strip().lower()
-
-    sanitycheck = {0:'highlight', 1:'date', 2:'name', 3:'organizer', 4:'format', 5:'players', 6:'winner', 7:'tournamentURL'}
+        for column_position in range(len(head)):
+            column_name = head[column_position]['data-sort'].strip().lower()
+            headers[column_name] = column_position
+    
+    #sanitycheck = {0:'highlight', 1:'date', 2:'name', 3:'organizer', 4:'format', 5:'players', 6:'winner', 7:'tournamentURL'}
 
     #print("Headers:" + str(headers))
     #print(sanitycheck)
@@ -31,30 +44,37 @@ def extract_tournament_information(tournaments):
     #    print("Headers haven't changed")
 
     i=len(headers)
-    headers[i] = "tournamentURL"
+
+    tournament_list = []
+
     for row in rows:
-        tournamentInfo = extractTournamentInfoFromRow(row, headers)
-        if tournamentInfo==None:
+        tournament_info = extract_tournament_info_from_row(row, headers)
+        if tournament_info is None:
             print('failed')
         else:
-            print('Append the results here')
+            tournament_list.append(tournament_info)
+    
+    return tournament_list
 
 
-def extractTournamentInfoFromRow(row, headers):
+def extract_tournament_info_from_row(row, headers):
     cells = row.find_all("td")
-    if(len(cells)>0):
-        if len(cells[0].text)>0:
+    tournament = {}
+    if len(cells)==0:
+        return tournament
+    else:
+        if len(cells[headers['highlight']].text)>0:
             highlighted = True
         else:
             highlighted = False
-        timestamp = int(cells[1].a['data-time'])
-        date = datetime.datetime.fromtimestamp(timestamp/1000).isoformat()
-        name = cells[2].text.strip()
-        url = cells[2].a['href']
-        organizer_name = cells[3].text.strip()
-        #tournamentOrganizerUrl = cells[3].a['href']
-        format = cells[4].img['data-tooltip'].lower()
-        entrant_count = cells[5].text
-        winner = cells[6].text
-        print(name)
-    return None
+
+        tournament['timestamp'] = int(cells[headers['date']].a['data-time'])
+        tournament['date'] = datetime.datetime.fromtimestamp(tournament['timestamp']/1000).isoformat()
+        tournament['name'] = cells[headers['name']].text.strip()
+        tournament['url'] = cells[headers['name']].a['href']
+        tournament['organizer_name'] = cells[headers['organizer']].text.strip()
+        tournament['organizer_url'] = cells[headers['organizer']].a['href']
+        tournament['format'] = cells[headers['format']].img['data-tooltip'].lower()
+        tournament['entrant_count'] = cells[headers['players']].text
+        tournament['winner'] = cells[headers['winner']].text
+    return tournament
