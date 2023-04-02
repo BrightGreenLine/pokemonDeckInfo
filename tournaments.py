@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 
 
+"""
+#until I figure out what I'm doing with classes, leave this out
 class Tournament():
     def __init__(self, name, link):
         self.name = name
@@ -11,6 +13,7 @@ class Tournament():
 class Participant():
     def __init__(self, id):
         self.id = id
+"""
 
 def get_new_tournaments_list(source_url, tournamentsAfterDate):
     """Grab only newer tournaments from LimitlessTCG, return a list of tournament objects"""
