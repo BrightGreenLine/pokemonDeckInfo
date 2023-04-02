@@ -25,7 +25,10 @@ def get_new_tournaments_list(source_url, tournamentsAfterDate):
     soup = BeautifulSoup(page.content, "html.parser")
 
     tournaments_list = soup.find(class_="striped completed-tournaments")
-    return tournaments_list
+    
+    tournaments = []
+    tournaments.append(extract_tournament_information(tournaments_list))
+    return tournaments
 
 def extract_tournament_information(tournaments):
     """Get the high level information about a tournament, such as URL, player counts, winners"""
@@ -37,7 +40,7 @@ def extract_tournament_information(tournaments):
         for column_position in range(len(head)):
             column_name = head[column_position]['data-sort'].strip().lower()
             headers[column_name] = column_position
-    
+
     #sanitycheck = {0:'highlight', 1:'date', 2:'name', 3:'organizer', 4:'format', 5:'players', 6:'winner', 7:'tournamentURL'}
 
     #print("Headers:" + str(headers))
@@ -56,11 +59,12 @@ def extract_tournament_information(tournaments):
             print('failed')
         else:
             tournament_list.append(tournament_info)
-    
+
     return tournament_list
 
 
 def extract_tournament_info_from_row(row, headers):
+    """Use the header list to find each column if they move and create a dict for the tournament"""
     cells = row.find_all("td")
     tournament = {}
     if len(cells)==0:
@@ -81,3 +85,9 @@ def extract_tournament_info_from_row(row, headers):
         tournament['entrant_count'] = cells[headers['players']].text
         tournament['winner'] = cells[headers['winner']].text
     return tournament
+
+def get_player_info_from_tournament(url):
+    """Return a dict of the players in each tournament, and their w/l statistics"""
+    page = requests.get(url, timeout=1)
+
+    soup = BeautifulSoup(page.content, "html.parser")
