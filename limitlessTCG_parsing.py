@@ -1,3 +1,5 @@
+"""Scripts for web scraping and parsing, no longer required because I gained access to the API"""
+
 import datetime
 import requests
 from bs4 import BeautifulSoup
