@@ -1,11 +1,6 @@
-import json
 import ordering_functions as of
 
 inputcards = []
-
-with open("N:\\limitlessTCG\\cardlistings\\cards.json","r",encoding='UTF-8') as file:
-    #data = file.read()
-    jsondata = json.load(file)
 setcode = "[SV01]"
 
 inputcards = of.get_cards_from_set('sv1')
@@ -19,10 +14,14 @@ buylist = []
 cardlist.append(headers)
 separator = ","
 
+def sanitize_cardlist(cardlist):
+    return 0
+
 for inputcard in inputcards:
     card = {}
     bestprice = of.findbestprice(inputcard['tcgplayer'])
-    card['name'] = inputcard['name'].replace('é','e')
+    card['name'] = inputcard['name']
+    card['buyname'] = inputcard['name'].replace('é','e')
     card['id'] = inputcard['id']
     card['set'] = inputcard['set']['id']
     card['setsize'] = str(inputcard['set']['printedTotal'])
@@ -31,8 +30,9 @@ for inputcard in inputcards:
     card['price'] = float(bestprice[1])
     cardlist.append(separator.join([card['name'],card['id'],card['set'],str(card['number']),card['treatment'],str(card['price'])]))
     if(float(bestprice[1]) <= 0.05 and int(inputcard['number'])<=198): 
-        buylist.append('4 ' + card['name'] + ' - ' + str(card['number']) + '/'+ card['setsize'] + ' ' + setcode)
+        buylist.append('4 ' + card['buyname'] + ' - ' + str(card['number']) + '/'+ card['setsize'] + ' ' + setcode)
     cards.append(card)
+#Stop here and put this into my database
 
 cardcounts = of.count_duplicates(cards)
 
