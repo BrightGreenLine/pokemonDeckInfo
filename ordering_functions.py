@@ -18,7 +18,7 @@ def get_cards_from_set(setid):
         #response = requests.get(pokemonapi, headers=headers,timeout=15)
         try:
             response = requests.get(pokemonapi, headers=headers,timeout=60,params=payload)
-            print("response collected")
+            #print("response collected")
         except requests.ConnectTimeout:
             print("connection timed out")
         except requests.ConnectionError:
@@ -34,7 +34,7 @@ def get_cards_from_set(setid):
         else:
             read_complete=True
 
-    print("Cards found: " + len(cardslist))
+    print("Cards found: " + str(len(cardslist)))
     return cardslist
 
 def findbestprice(tcgplayerinfo):
@@ -54,10 +54,10 @@ def createbuylist(cardlist, cardcounts, setcode):
         if card['price']<= 0.10:
             if cardcounts[card['name']] > 1:
                 #Card has multiple printings, needs format of "{qty} {cardname} - {id}/{setsize} [{setid}]"
-                results.append('4 ' + card['name'] + ' - ' + card['number'] + '/' + card['setsize'] + ' '+ setcode)
+                results.append('4 ' + card['name'] + ' - ' + str(card['number']).zfill(3) + '/' + str(card['setsize']) + ' '+ setcode)
             else:
                 #Card has single printings, needs format of "{qty} {cardname} [{setid}]"
-                results.append('4 ' + card['name'] + ' ' + setcode + ' ' + card['number'] + '/' + card['setsize'])
+                results.append('4 ' + card['name'] + ' ' + setcode + ' ' + str(card['number']).zfill(3) + '/' + str(card['setsize']))
     return results
 
 def count_duplicates(cardlist):
