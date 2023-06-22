@@ -2,6 +2,20 @@ import argparse
 from datetime import datetime
 import data_retrieval
 import buylist_generation
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def say_hello():
+    print(request.query_string)
+    print(f"Action is: {request.args.get('action')}")
+    print(f"Setlists are: {request.args.get('sets')}")
+    print(f"Price is: {request.args.get('price')}")
+    return "Hahaha nope"
+
+
+@app.route("/buylist/<sets>")
 
 def main():
     args = getargs()
@@ -64,4 +78,5 @@ def get_buylist(sets, price):
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    app.run(host='0.0.0.0', port=6969)

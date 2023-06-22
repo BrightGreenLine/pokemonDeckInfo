@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.11.2-slim
+FROM python:3.11.4-slim
 WORKDIR /app
 
 # install psycopg2 dependencies
