@@ -1,6 +1,7 @@
-import requests
 import re
-import psycopg2 as postgres
+from datetime import datetime
+import requests
+import psycopg2 as pg
 
 
 def get_secret_key():
@@ -19,7 +20,6 @@ def get_cards_DSN():
 
 
 def retrieve_setdata(setid):
-    print(setid)
     dirty_cardlist = get_cards_from_api(setid)
     cards = sanitize_card_data(dirty_cardlist)
     return cards
@@ -28,7 +28,7 @@ def retrieve_setdata(setid):
 
 def load_cards_to_database(cards):
     dsn = get_cards_DSN()
-    dbconn = postgres.connect(dsn)
+    dbconn = pg.connect(dsn)
     drop_and_recreate_cards_table(dbconn)
 
     cursor = dbconn.cursor()
@@ -50,6 +50,7 @@ def drop_and_recreate_cards_table(dbconn):
                     card_id character varying COLLATE pg_catalog.\"default\" NOT NULL,
                     buyname character varying COLLATE pg_catalog.\"default\" NOT NULL,
                     set_id character varying  COLLATE pg_catalog.\"default\" NOT NULL,
+                    rarity character varying  COLLATE pg_catalog.\"default\" NOT NULL,
                     card_number integer NOT NULL,
                     card_setsize integer NOT NULL,
                     price decimal NOT NULL,
@@ -66,22 +67,15 @@ def drop_and_recreate_cards_table(dbconn):
 
 def insert_card_to_database(card, cursor):
     query = """insert into public.card_list
-    (card_name, card_id, buyname, set_id, card_number, card_setsize, price, treatment)
+    (card_name, card_id, buyname, set_id, rarity, card_number, card_setsize, price, treatment)
 	values 
-    (%s,%s,%s,%s,%s,%s,%s,%s)
+    (%s,%s,%s,%s,%s,%s,%s,%s,%s)
     """
-    """.format(cardname=card['name'],
-               cardid=card['id'],
-               buyname=card['buyname'],
-               setid=card['set'],
-               cardnumber=card['number'],
-               setsize=card['setsize'],
-               price=card['price'],
-               treatment=card['treatment'])"""
     cursor.execute(query, (card['name'],
                            card['id'],
                            card['buyname'],
                            card['set'],
+                           card['rarity'],
                            card['number'],
                            card['setsize'],
                            card['price'],
@@ -92,7 +86,7 @@ def insert_card_to_database(card, cursor):
 
 def format_buyname(card):
     buyname = card['name'].replace('é','e')
-    matches = re.split(r"([\s\w\']+)( \([\w\s\']+\)?)",buyname)
+    matches = re.split(r"([\s\w\'\’]+)( \([\w\s\']+\)?)",buyname)
     if len(matches) ==1:
         buyname = matches[0]
     else:
@@ -109,6 +103,7 @@ def sanitize_card_data(raw_cardlist):
         card = {}
         bestprice = findbestprice(inputcard['tcgplayer'])
         card['name'] = inputcard['name']
+        card['rarity'] = inputcard['rarity']
         card['buyname'] = format_buyname(card)
         card['id'] = inputcard['id']
         card['set'] = inputcard['set']['id']
@@ -163,5 +158,4 @@ def get_cards_from_api(setid):
         else:
             read_complete=True
 
-    print("Cards found: " + str(len(cardslist)) + " " + cardslist[0]['set']['id'])
     return cardslist
