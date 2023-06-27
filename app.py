@@ -1,8 +1,12 @@
 import argparse
 from datetime import datetime
+from flask import Flask, request, make_response, jsonify
+import os
+from dotenv import load_dotenv
 import data_retrieval
 import buylist_generation
-from flask import Flask, request, make_response, jsonify
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -116,4 +120,5 @@ def get_buylist(sets, price):
 
 if __name__ == "__main__":
     #main()
+    print(f"Secret key is:{os.getenv('SECRETS_PATH')}")
     app.run(host='0.0.0.0', port=6969)

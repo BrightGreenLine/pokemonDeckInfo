@@ -2,11 +2,14 @@ import re
 from datetime import datetime
 import requests
 import psycopg2 as pg
+import os, os.path
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def get_secret_key():
     """Return the api key from the source. Temporarily, file on my drive"""
-    with open('N:\\limitlessTCG\\ptcgio_apikey.txt', 'rt', encoding='UTF-8') as file:
+    with open(os.path.join(os.getenv('SECRETS_PATH'),"ptcgio_apikey.txt"), "rt", encoding='UTF-8') as file:
         result = file.read()
     return result
 
@@ -14,7 +17,7 @@ def get_secret_key():
 
 def get_cards_DSN():
     """Return the api key from the source. Temporarily, file on my drive"""
-    with open('N:\\limitlessTCG\\cardDB.txt', 'rt', encoding='UTF-8') as file:
+    with open(os.path.join(os.getenv('SECRETS_PATH'),"cardDB.txt"), "rt", encoding='UTF-8') as file:
         result = file.read()  
     return result
 
