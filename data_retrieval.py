@@ -2,11 +2,14 @@ import re
 from datetime import datetime
 import requests
 import psycopg2 as pg
+import os, os.path
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def get_secret_key():
     """Return the api key from the source. Temporarily, file on my drive"""
-    with open('N:\\limitlessTCG\\ptcgio_apikey.txt', 'rt', encoding='UTF-8') as file:
+    with open(os.path.join(os.getenv('SECRETS_PATH'),"ptcgio_apikey.txt"), "rt", encoding='UTF-8') as file:
         result = file.read()
     return result
 
@@ -14,13 +17,16 @@ def get_secret_key():
 
 def get_cards_DSN():
     """Return the api key from the source. Temporarily, file on my drive"""
-    with open('N:\\limitlessTCG\\cardDB.txt', 'rt', encoding='UTF-8') as file:
+    with open(os.path.join(os.getenv('SECRETS_PATH'),"cardDB.txt"), "rt", encoding='UTF-8') as file:
         result = file.read()  
     return result
 
 
+
 def retrieve_setdata(setid):
     dirty_cardlist = get_cards_from_api(setid)
+    if (dirty_cardlist is None) or (len(dirty_cardlist) == 0):
+        return None
     cards = sanitize_card_data(dirty_cardlist)
     return cards
 
@@ -43,22 +49,7 @@ def load_cards_to_database(cards):
 
 def drop_and_recreate_cards_table(dbconn):
     cursor = dbconn.cursor()
-    cursor.execute("""DROP TABLE IF EXISTS public.card_list;
-                CREATE TABLE public.card_list
-                (  id integer generated always as identity,
-                    card_name character varying COLLATE pg_catalog.\"default\" NOT NULL,
-                    card_id character varying COLLATE pg_catalog.\"default\" NOT NULL,
-                    buyname character varying COLLATE pg_catalog.\"default\" NOT NULL,
-                    set_id character varying  COLLATE pg_catalog.\"default\" NOT NULL,
-                    rarity character varying  COLLATE pg_catalog.\"default\" NOT NULL,
-                    card_number integer NOT NULL,
-                    card_setsize integer NOT NULL,
-                    price decimal NOT NULL,
-                    treatment character varying  COLLATE pg_catalog.\"default\" NOT NULL,
-                    CONSTRAINT card_list_pkey PRIMARY KEY (card_id, id))
-                TABLESPACE pg_default;
-                ALTER TABLE public.card_list
-                    OWNER to pokemon_data_agent;""")
+    cursor.execute("""CALL public.drop_and_refresh_table()""")
     dbconn.commit()
     cursor.close()
     return
@@ -150,6 +141,10 @@ def get_cards_from_api(setid):
         except:
             print("Request failed for non-connect or timeout")
 
+        if response.status_code != 200:
+            print(f"{datetime.now()} | ERROR | Response received from api was not okay: {response.status_code}")
+            return None
+
         query = response.json()
         for card in query['data']:
             cardslist.append(card)
@@ -159,3 +154,16 @@ def get_cards_from_api(setid):
             read_complete=True
 
     return cardslist
+
+
+
+def validate_credentials(auth):
+    dsn = get_cards_DSN()
+    dbconn = pg.connect(dsn)
+    cursor = dbconn.cursor()
+
+    cursor.execute("""SELECT keyvalue from user_keys where keyvalue = %s""", (auth,))
+    results = cursor.fetchall()
+    if len(results) > 0:
+        return True
+    return False

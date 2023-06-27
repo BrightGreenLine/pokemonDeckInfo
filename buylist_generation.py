@@ -1,10 +1,14 @@
 import psycopg2 as pg
 from psycopg2.extras import execute_values
+import os, os.path
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def get_cards_DSN():
     """Return the api key from the source. Temporarily, file on my drive"""
-    with open('N:\\limitlessTCG\\cardDB.txt', 'rt', encoding='UTF-8') as file:
+    #with open(f"{os.getenv('SECRETS_PATH')}\\cardDB.txt", 'rt', encoding='UTF-8') as file:
+    with open(os.path.join(os.getenv('SECRETS_PATH'),"cardDB.txt"), "rt", encoding='UTF-8') as file:
         result = file.read()  
     return result
 
@@ -41,8 +45,6 @@ def get_cardlist_from_database(sets):
     execute_values(cursor, query, (splitsets,))
     #cursor.execute(query,(splitsets,price,))
     results = cursor.fetchall()
-    for record in cursor:
-        print(record)
     return results
 
 
