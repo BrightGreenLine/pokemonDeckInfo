@@ -121,4 +121,4 @@ def get_buylist(sets, price):
 if __name__ == "__main__":
     #main()
     print(f"Secret key is:{os.getenv('SECRETS_PATH')}")
-    app.run(host='0.0.0.0', port=6969)
+    app.run(host='0.0.0.0')

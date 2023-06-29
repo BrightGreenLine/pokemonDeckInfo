@@ -2,24 +2,7 @@ import re
 from datetime import datetime
 import requests
 import psycopg2 as pg
-import os, os.path
-from dotenv import load_dotenv
-
-load_dotenv()
-
-def get_secret_key():
-    """Return the api key from the source. Temporarily, file on my drive"""
-    with open(os.path.join(os.getenv('SECRETS_PATH'),"ptcgio_apikey.txt"), "rt", encoding='UTF-8') as file:
-        result = file.read()
-    return result
-
-
-
-def get_cards_DSN():
-    """Return the api key from the source. Temporarily, file on my drive"""
-    with open(os.path.join(os.getenv('SECRETS_PATH'),"cardDB.txt"), "rt", encoding='UTF-8') as file:
-        result = file.read()  
-    return result
+import project_secrets as ps
 
 
 
@@ -33,7 +16,7 @@ def retrieve_setdata(setid):
 
 
 def load_cards_to_database(cards):
-    dsn = get_cards_DSN()
+    dsn = ps.get_cards_DSN()
     dbconn = pg.connect(dsn)
     drop_and_recreate_cards_table(dbconn)
 
@@ -125,7 +108,7 @@ def get_cards_from_api(setid):
     cardslist = []
     page = 1
     read_complete = False
-    apikey = get_secret_key()
+    apikey = ps.get_pkio_key()
     pokemonapi = "https://api.pokemontcg.io/v2/cards"
     headers = {'X-Api-Key': apikey}
     while read_complete==False:
@@ -158,7 +141,7 @@ def get_cards_from_api(setid):
 
 
 def validate_credentials(auth):
-    dsn = get_cards_DSN()
+    dsn = ps.get_cards_DSN()
     dbconn = pg.connect(dsn)
     cursor = dbconn.cursor()
 
