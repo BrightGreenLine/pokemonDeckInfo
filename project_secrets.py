@@ -10,11 +10,11 @@ load_dotenv()
 
 def get_pkio_key():
     """Return the api key from the source. Temporarily, file on my drive"""
-    if(os.getenv('HOST')=="LOCAL" or os.getenv('HOST')==""):
+    if os.getenv('HOST')=="LOCAL" or os.getenv('HOST')=="":
         with open(os.path.join(os.getenv('SECRETS_PATH'),"ptcgio_apikey.txt"), "rt", encoding='UTF-8') as file:
             result = file.read()
             return result
-    elif (os.getenv('HOST')=="AWS"):
+    elif os.getenv('HOST')=="AWS":
         response = get_aws_secret('pkio_api_key', os.getenv('AWSREGION'))
         result = json.loads(response['SecretString'])['pkio_key']
         return result
@@ -23,11 +23,11 @@ def get_pkio_key():
 
 def get_cards_DSN():
     """Return the api key from the source. Temporarily, file on my drive"""
-    if(os.getenv('HOST')=="LOCAL" or os.getenv('HOST')==""):
+    if os.getenv('HOST')=="LOCAL" or os.getenv('HOST')=="":
         with open(os.path.join(os.getenv('SECRETS_PATH'),"cardDB.txt"), "rt", encoding='UTF-8') as file:
             result = file.read()
             return result
-    elif (os.getenv('HOST')=="AWS"):
+    elif os.getenv('HOST')=="AWS":
         response = get_aws_secret('cardinfo_DSN', os.getenv('AWSREGION'))
         result = json.loads(response['SecretString'])['DSN']
         return result

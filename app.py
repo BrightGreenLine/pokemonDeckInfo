@@ -1,7 +1,6 @@
 import argparse
 from datetime import datetime
 from flask import Flask, request, make_response, jsonify
-import os
 from dotenv import load_dotenv
 import data_retrieval
 import buylist_generation
@@ -35,7 +34,7 @@ def get_responses():
 @app.route("/buylist/")
 def make_buylist():
     headers = request.headers
-    auth = headers.get("X-Api-Key")
+    #auth = headers.get("X-Api-Key")
     if True: #data_retrieval.validate_credentials(auth):
         display = get_buylist(request.args.get('sets'), request.args.get('price'))
     
@@ -120,5 +119,4 @@ def get_buylist(sets, price):
 
 if __name__ == "__main__":
     #main()
-    print(f"Secret key is:{os.getenv('SECRETS_PATH')}")
-    app.run(host='0.0.0.0')
+    app.run()
